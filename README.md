@@ -70,7 +70,7 @@ Você pode baixar a versão instalável para Windows aqui:
 
 👉 [WebscraperQuotesInstaller.exe](https://github.com/AurusDev/webscraper-quotes/releases/tag/v1.0.0)
 
-[![Download](https://img.shields.io/badge/⬇️%20Download-WebscraperQuotes-blue?style=for-the-badge)](https://github.com/AurusDev/webscraper-quotes/releases/tag/v1.0.0)
+[![Download](https://img.shields.io/badge/⬇️%20Download-WebscraperQuotes-blue?style=for-the-badge)](https://github.com/AurusDev/webscraper-quotes/releases/download/v1.0.0/WebscraperQuotesInstaller.exe)
 
 > ⚠️ Recomendado apenas para Windows 64-bit  
 > ✔ Não precisa instalar Python nem dependências
