@@ -1,13 +1,13 @@
-import requests
-from bs4 import BeautifulSoup
-import csv
-import json
+import asyncio
 import logging
-import time
-import random
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Tuple
 from urllib.parse import urljoin
+
+import httpx
+from bs4 import BeautifulSoup
+import json
+import csv
 
 BASE_URL = "https://quotes.toscrape.com/"
 
@@ -17,26 +17,16 @@ class Quote:
     author: str
     tags: List[str]
 
-def setup_logging(level=logging.INFO):
+def setup_logging():
     logging.basicConfig(
-        level=level,
+        level=logging.INFO,
         format="%(asctime)s | %(levelname)s | %(message)s",
         datefmt="%H:%M:%S",
     )
 
-def fetch_html(url: str) -> Optional[str]:
-    try:
-        resp = requests.get(url, timeout=10)
-        if resp.status_code == 200:
-            return resp.text
-        logging.error("Status %s em %s", resp.status_code, url)
-    except Exception as e:
-        logging.error("Erro de rede: %s", e)
-    return None
-
 def parse_quotes_page(html: str, current_url: str) -> Tuple[List[Quote], Optional[str]]:
     soup = BeautifulSoup(html, "lxml")
-    quotes = []
+    quotes: List[Quote] = []
     for block in soup.select("div.quote"):
         text = block.select_one("span.text").get_text(strip=True).strip("“”\"'")
         author = block.select_one("small.author").get_text(strip=True)
@@ -46,23 +36,36 @@ def parse_quotes_page(html: str, current_url: str) -> Tuple[List[Quote], Optiona
     next_url = urljoin(current_url, next_el["href"]) if next_el else None
     return quotes, next_url
 
-def crawl_all_quotes(start_url: str = BASE_URL, max_pages: Optional[int] = None) -> List[Quote]:
+async def fetch_html(client: httpx.AsyncClient, url: str) -> Optional[str]:
+    try:
+        resp = await client.get(url, timeout=10.0)
+        resp.raise_for_status()
+        return resp.text
+    except Exception as e:
+        logging.error("Erro ao buscar %s: %s", url, e)
+        return None
+
+async def crawl_all_quotes(start_url: str = BASE_URL, max_pages: Optional[int] = None) -> List[Quote]:
     setup_logging()
-    all_quotes: List[Quote] = []
-    url = start_url
-    page = 0
-    while url:
-        page += 1
-        if max_pages and page > max_pages:
-            break
-        html = fetch_html(url)
-        if not html:
-            break
-        quotes, next_url = parse_quotes_page(html, url)
-        all_quotes.extend(quotes)
-        url = next_url
-        time.sleep(random.uniform(0.5, 1.0))
-    return all_quotes
+    quotes: List[Quote] = []
+    async with httpx.AsyncClient(headers={"User-Agent": "Mozilla/5.0"}) as client:
+        url = start_url
+        page = 0
+        while url:
+            page += 1
+            if max_pages and page > max_pages:
+                break
+            html = await fetch_html(client, url)
+            if not html:
+                break
+            q, next_url = parse_quotes_page(html, url)
+            quotes.extend(q)
+            url = next_url
+    return quotes
+
+def save_to_json(quotes: List[Quote], path: str):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump([asdict(q) for q in quotes], f, ensure_ascii=False, indent=2)
 
 def save_to_csv(quotes: List[Quote], path: str):
     with open(path, "w", newline="", encoding="utf-8") as f:
@@ -70,7 +73,3 @@ def save_to_csv(quotes: List[Quote], path: str):
         writer.writerow(["text", "author", "tags"])
         for q in quotes:
             writer.writerow([q.text, q.author, "|".join(q.tags)])
-
-def save_to_json(quotes: List[Quote], path: str):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump([asdict(q) for q in quotes], f, ensure_ascii=False, indent=2)
