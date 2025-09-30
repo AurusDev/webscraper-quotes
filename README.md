@@ -18,8 +18,6 @@ Interface moderna construída com **Flet**:
 
 ![Preview da interface](docs/preview.png)
 
-*(adicione aqui seu screenshot ou gif demonstrativo em `docs/preview.png` ou `docs/demo.gif`)*
-
 ---
 
 ## 🚀 Como rodar
@@ -63,6 +61,19 @@ Os dados coletados são salvos na pasta `data/` em formatos:
 - `quotes.json`
 - `quotes_ui.csv`
 - `quotes_ui.json`
+
+---
+
+## 📦 Instalador (.exe)
+
+Você pode baixar a versão instalável para Windows aqui:
+
+👉 [WebscraperQuotesInstaller.exe](https://github.com/AurusDev/webscraper-quotes/releases/tag/v1.0.0)
+
+[![Download](https://img.shields.io/badge/⬇️%20Download-WebscraperQuotes-blue?style=for-the-badge)](https://github.com/AurusDev/webscraper-quotes/releases/tag/v1.0.0)
+
+> ⚠️ Recomendado apenas para Windows 64-bit  
+> ✔ Não precisa instalar Python nem dependências
 
 ---
 
